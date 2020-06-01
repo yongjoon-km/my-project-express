@@ -34,9 +34,9 @@ app.get('/api/jobs', (req, res) => {
 });
 
 // insert a new job into database
-app.post('/api/jobs/', async (req, res) => {
+app.post('/api/jobs/', (req, res) => {
 
-	const job_name = req.body['job_name']
+	const job_name = req.body['job_name'];
 
 	if (job_name) {
 		connection.query(`INSERT INTO jobs(job_name) VALUES ('${job_name}')`, (err, rows) => {
@@ -57,10 +57,35 @@ app.post('/api/jobs/', async (req, res) => {
 		res.status(400).send({
 			message: 'wrong data format',
 		});
+	}	
+})
+
+app.delete('/api/jobs/', async (req, res) => {
+	const job_name = req.body['job_name'];
+
+	if (job_name === undefined) {
+		res.status(400).send({
+			message: 'wrong data format',
+		});
+		return ;
 	}
 
-	// const job_name = req.param('job');
+	await connection.query(`DELETE FROM jobs WHERE job_name = '${job_name}'`, (err, rows) => {
+		if (err) console.log(err);
+
+		if (rows.affectedRows === 0) {
+			res.status(404).send({
+				message: 'data not found',
+			})
+		} else {
+			res.send({
+				message: 'deleted',
+				job_name: job_name
+			});
+		}
+	});
 	
+
 })
 
 app.listen(port, () => console.log(`listening... ${port}`));
