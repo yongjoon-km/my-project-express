@@ -60,7 +60,7 @@ app.post('/api/jobs/', (req, res) => {
 	}	
 })
 
-app.delete('/api/jobs/', async (req, res) => {
+app.delete('/api/jobs/', (req, res) => {
 	const job_name = req.body['job_name'];
 
 	if (job_name === undefined) {
@@ -70,7 +70,7 @@ app.delete('/api/jobs/', async (req, res) => {
 		return ;
 	}
 
-	await connection.query(`DELETE FROM jobs WHERE job_name = '${job_name}'`, (err, rows) => {
+	connection.query(`DELETE FROM jobs WHERE job_name = '${job_name}'`, (err, rows) => {
 		if (err) console.log(err);
 
 		if (rows.affectedRows === 0) {
@@ -84,7 +84,38 @@ app.delete('/api/jobs/', async (req, res) => {
 			});
 		}
 	});
-	
+});
+
+app.put('/api/jobs/', (req, res) => {
+
+	const new_job_name = req.body['new_job_name'];
+	const old_job_name = req.body['old_job_name']
+
+	if (new_job_name === undefined || old_job_name === undefined) {
+		res.status(400).send({
+			message: 'wrong data format',
+		});
+		return ;
+	}
+
+	connection.query(`UPDATE jobs SET job_name='${new_job_name}' WHERE job_name='${old_job_name}'`, (err, rows) => {
+		if (err) {
+			console.log(err);
+		} else {
+			if (rows.affectedRows === 0) {
+				res.status(404).send({
+					message: 'data not found',
+					old_job_name: old_job_name
+				});
+			} else {
+				res.send({
+					message: 'updated',
+					new_job_name: new_job_name,
+					old_job_name: old_job_name
+				});
+			}
+		}
+	});
 
 })
 
