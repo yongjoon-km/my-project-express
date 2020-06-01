@@ -1,6 +1,7 @@
 const express = require('express');
 var cors 			= require('cors');
 var mysql			= require('mysql');
+const bodyParser = require('body-parser');
 
 
 var connection = mysql.createConnection({
@@ -16,6 +17,7 @@ const app = express();
 const port = 5000;
 
 app.use(cors());
+app.use(bodyParser.json());
 
 app.get('/', (req, res) => {
 
@@ -32,15 +34,33 @@ app.get('/api/jobs', (req, res) => {
 });
 
 // insert a new job into database
-app.post('/api/jobs/', (req, res) => {
-	const job_name = req.param('job');
-	connection.query(`INSERT INTO jobs(job_name) VALUES ('${job_name}')`, (err, rows) => {
-		if (err) throw err;
-		res.send({
-			message: 'ok',
-			job: job_name,
+app.post('/api/jobs/', async (req, res) => {
+
+	const job_name = req.body['job_name']
+
+	if (job_name) {
+		connection.query(`INSERT INTO jobs(job_name) VALUES ('${job_name}')`, (err, rows) => {
+			if (err) {
+				if (err.code === 'ER_DUP_ENTRY')
+					res.status(400).send({
+						message: 'duplicated entry',
+					})
+					return;
+			} else {
+				res.send({
+					message: 'ok',
+					job: job_name,
+				});
+			}
 		});
-	})
+	} else {
+		res.status(400).send({
+			message: 'wrong data format',
+		});
+	}
+
+	// const job_name = req.param('job');
+	
 })
 
 app.listen(port, () => console.log(`listening... ${port}`));
