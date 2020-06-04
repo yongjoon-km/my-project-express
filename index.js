@@ -2,6 +2,7 @@ const express = require('express');
 var cors 			= require('cors');
 var mysql			= require('mysql');
 const bodyParser = require('body-parser');
+const bcrypt	= require('bcrypt');
 
 
 var connection = mysql.createConnection({
@@ -15,6 +16,9 @@ connection.connect();
 
 const app = express();
 const port = 5000;
+
+// users temp array
+var users = []
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -116,6 +120,49 @@ app.put('/api/jobs/', (req, res) => {
 			}
 		}
 	});
+
+})
+
+app.get('/users/', (req, res) => {
+	res.send(users);
+})
+
+app.post('/user/', async (req, res) => {
+	const username = req.body.user;
+	const password = req.body.password;
+
+	if (username === undefined || password === undefined) {
+		res.status(404).send('bad request');
+		return;
+	}
+
+	const hashedPassword = await bcrypt.hash(password, 10);
+
+	if (users.find((user) => user.username === username))
+		res.status(400).send('user exist');
+	else {
+		users.push({username: username, password: hashedPassword}) 
+		res.send({
+			message: 'user added',
+			password: hashedPassword
+		});
+	}
+})
+
+app.post('/user/login', async (req, res) => {
+	const username = req.body.user;
+	const password = req.body.password;
+
+	const user = users.find((user) => user.username === username)
+
+	if (user === undefined) {
+		res.status(404).send('user not found');
+	} else {
+		if (await bcrypt.compare(password, user.password))
+			res.send('login!!!')
+		else
+			res.status(403).send('incorrect');
+	}
 
 })
 
