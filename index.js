@@ -17,9 +17,6 @@ connection.connect();
 const app = express();
 const port = 5000;
 
-// users temp array
-var users = []
-
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -124,7 +121,11 @@ app.put('/api/jobs/', (req, res) => {
 })
 
 app.get('/users/', (req, res) => {
-	res.send(users);
+	connection.query(`SELECT name FROM user`, (err, rows) => {
+		if (err) throw err;
+		console.log(rows);
+		res.send(rows);
+	})
 })
 
 app.post('/user/', async (req, res) => {
@@ -137,33 +138,38 @@ app.post('/user/', async (req, res) => {
 	}
 
 	const hashedPassword = await bcrypt.hash(password, 10);
-
-	if (users.find((user) => user.username === username))
-		res.status(400).send('user exist');
-	else {
-		users.push({username: username, password: hashedPassword}) 
-		res.send({
-			message: 'user added',
-			password: hashedPassword
-		});
-	}
+	connection.query(`SELECT * FROM user WHERE name='${username}'`, (err, rows) => {
+		if (err) throw err;
+		if (rows.length > 0)
+			res.status(400).send('user exist');
+		else {
+			connection.query(`INSERT INTO user (name, password) VALUES ('${username}', '${hashedPassword}')`, (err, rows) => {
+				if (err) throw err;
+				res.send({
+					message: 'user added',
+					password: hashedPassword
+				});		
+			})
+		}
+	});
 })
 
 app.post('/user/login', async (req, res) => {
 	const username = req.body.user;
 	const password = req.body.password;
-
-	const user = users.find((user) => user.username === username)
-
-	if (user === undefined) {
-		res.status(404).send('user not found');
-	} else {
-		if (await bcrypt.compare(password, user.password))
-			res.send('login!!!')
-		else
-			res.status(403).send('incorrect');
-	}
-
+	
+	const hashedPassword = await bcrypt.hash(password, 10);
+	connection.query(`SELECT password FROM user WHERE name='${username}'`, async (err, rows) => {
+		if (err) throw err;
+		if (rows.length > 0) {
+			if (await bcrypt.compare(password, rows[0].password))
+				res.send('login success')
+			else
+				res.status(403).send('password incorrect')
+		} else {
+			res.status(404).send({message: 'user not found'});
+		}
+	})
 })
 
 app.listen(port, () => console.log(`listening... ${port}`));
