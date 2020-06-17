@@ -4,9 +4,12 @@ const bodyParser = require('body-parser');
 
 const jobs = require('./routes/jobs');
 const user = require('./routes/user')
+const sequelize = require('./models').sequelize;
 
 const app = express();
 const port = 5000;
+
+sequelize.sync();
 
 app.use(cors());
 app.use(bodyParser.json());
