@@ -16,10 +16,8 @@ connection.connect();
 
 // get all jobs from database
 router.get('/', verifyToken, (req, res) => {
-  console.log(req.decoded);
   connection.query('SELECT * FROM jobs ORDER BY job_id', (err, rows) => {
     if (err) throw err;
-
     res.send(rows);
   })
 });

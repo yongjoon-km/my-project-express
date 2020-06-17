@@ -1,8 +1,9 @@
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 exports.verifyToken = (req, res, next) => {
 	try {
-		req.decoded = jwt.verify(req.headers.authorization, 'password');
+		req.decoded = jwt.verify(req.headers.authorization, process.env.JWT_PASSWORD);
 		return next();
 	} catch (err) {
 		if (err.name === 'TokenExpiredError') {

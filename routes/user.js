@@ -3,12 +3,13 @@ const router = express.Router()
 const bcrypt = require('bcrypt');
 const mysql = require('mysql');
 const jwt = require('jsonwebtoken');
+require('dotenv').config()
 
 const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '1234',
-  database: 'project_db'
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DATABASE 
 });
 
 connection.connect();
@@ -58,7 +59,7 @@ router.post('/login', async(req, res) => {
       if (await bcrypt.compare(password, rows[0].password)) {
         const token = jwt.sign({
           id: username,
-        }, 'password', {
+        }, process.env.JWT_PASSWORD, {
           expiresIn: '15m',
           issuer: 'yongkim',
         });
