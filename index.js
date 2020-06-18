@@ -2,9 +2,10 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 
-const jobs = require('./routes/jobs');
-const user = require('./routes/user')
 const sequelize = require('./models').sequelize;
+
+const user = require('./routes/user');
+const jobs = require('./routes/jobs');
 
 const app = express();
 const port = 5000;
