@@ -27,7 +27,7 @@ app.use(session({
     cookie: {
         httpOnly: true,
         secure: false,
-        _expires: 3000,
+        _expires: 15 * 60 * 1000,
     },
 }));
 

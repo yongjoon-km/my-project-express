@@ -8,6 +8,7 @@ require('dotenv').config()
 const router = express.Router()
 
 router.get('/', async (req, res) => {
+  console.log(req.user);
   const users = await User.findAll({
     attributes: { exclude: ['password'] }
   })
